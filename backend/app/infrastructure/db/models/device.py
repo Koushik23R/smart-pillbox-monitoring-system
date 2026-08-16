@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from enum import Enum
 
-from sqlalchemy import Boolean, DateTime, Enum as SAEnum, Float, String, func
+from sqlalchemy import Boolean, DateTime, Enum as SAEnum, Float, ForeignKey, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -36,7 +36,7 @@ class Device(Base):
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     patient_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), nullable=True
+        UUID(as_uuid=True), ForeignKey("users.id"), nullable=True
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     device_type: Mapped[DeviceType] = mapped_column(
@@ -66,7 +66,11 @@ class Device(Base):
         nullable=False,
     )
 
-    patient: Mapped["User | None"] = relationship("User", back_populates="devices")
+    patient: Mapped["User | None"] = relationship(
+        "User",
+        back_populates="devices",
+        foreign_keys=[patient_id],
+    )
     schedules: Mapped[list["MedicationSchedule"]] = relationship(
         "MedicationSchedule", back_populates="device"
     )
